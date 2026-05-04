@@ -1,11 +1,29 @@
-exports.getProducts = async (req, res) => {
-  const { name, category } = req.query;
+import Product from "../models/product.js";
 
-  let filter = {};
+export const createProduct = async (req, res) => {
+  const product = await Product.create(req.body);
+  res.json(product);
+};
 
-  if (name) filter.name = { $regex: name, $options: "i" };
-  if (category) filter.category = category;
+export const getProducts = async (req, res) => {
+  const { search, category, sort } = req.query;
+  let query = {};
 
-  const products = await Product.find(filter);
-  res.json(products);
+  if (search) query.name = { $regex: search, $options: "i" };
+  if (category) query.category = category;
+
+  let products = Product.find(query);
+  if (sort) products = products.sort(sort);
+
+  res.json(await products);
+};
+
+export const updateProduct = async (req, res) => {
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(product);
+};
+
+export const deleteProduct = async (req, res) => {
+  await Product.findByIdAndDelete(req.params.id);
+  res.json({ message: "Deleted" });
 };

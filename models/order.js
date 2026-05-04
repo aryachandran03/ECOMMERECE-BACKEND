@@ -1,8 +1,10 @@
-exports.createOrder = async (req, res) => {
-  const order = await Order.create({
-    user: req.user.id,
-    products: req.body.products
-  });
+import mongoose from "mongoose";
 
-  res.json(order);
-};
+const orderSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  total: Number,
+  status: { type: String, default: "pending" }
+}, { timestamps: true });
+
+export default mongoose.model("Order", orderSchema);

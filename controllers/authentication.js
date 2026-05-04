@@ -1,29 +1,22 @@
-const User = require("../models/user");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+import User from "../models/user.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-exports.register = async (req, res) => {
-  const hashed = await bcrypt.hash(req.body.password, 10);
-
-  const user = await User.create({
-    ...req.body,
-    password: hashed
-  });
-
+export const register = async (req, res) => {
+  const { name, email, password } = req.body;
+  const hashed = await bcrypt.hash(password, 10);
+  const user = await User.create({ name, email, password: hashed });
   res.json(user);
 };
 
-exports.login = async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
 
-  const match = await bcrypt.compare(req.body.password, user.password);
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) return res.status(400).json({ message: "Wrong password" });
 
-  if (!match) return res.json({ message: "Invalid credentials" });
-
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET
-  );
-
+  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
   res.json({ token });
 };
